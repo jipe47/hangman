@@ -1,5 +1,6 @@
 package be.itstudents.jipe.thehangman;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -31,12 +32,10 @@ public class Main extends Activity {
 	private static int MAX_CHANCE = 10;
 	public static int TAG_BUTTON = 22;
 	
-	private String[] words = {"aaa", "bcd"};
-	
-	private int currentWord = -1;
-	private Random rnd;
+	private String currentWord = null;
 	private int remainingChance = 0;
 	private boolean[] foundLetters;
+	private Dictionary dictionary;
 	
 	private ArrayList<Button> buttons;
 	
@@ -51,7 +50,12 @@ public class Main extends Activity {
         bc.setAdapter(new ButtonAdapter(this));
         bc.setFocusable(false);
         
-        this.rnd = new Random();
+        try {
+			dictionary = new Dictionary(getAssets().open("dictionary.txt"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
     public void loose()
@@ -74,10 +78,10 @@ public class Main extends Activity {
     
     public void reset()
     {
-    	this.currentWord = this.rnd.nextInt(this.words.length);
+    	this.currentWord = dictionary.getRandomWord();
     	this.remainingChance = MAX_CHANCE;
     	
-    	int wordLength = this.words[this.currentWord].length();
+    	int wordLength = this.currentWord.length();
     	
     	this.foundLetters = new boolean[wordLength];
     	for(int i = 0 ; i < wordLength ; i++)
@@ -94,15 +98,14 @@ public class Main extends Activity {
     {
     	TextView tv = (TextView) this.findViewById(R.id.word_display);
     	
-    	String cW = this.words[this.currentWord];
-    	int wordLength = cW.length();
+    	int wordLength = this.currentWord.length();
     	
     	String content = "";
     	
     	for(int i = 0 ; i < wordLength ; i++)
     	{
     		if(this.foundLetters[i])
-    			content += cW.charAt(i);
+    			content += this.currentWord.charAt(i);
     		else
     			content += "_";
     		
@@ -117,14 +120,13 @@ public class Main extends Activity {
     {
     	boolean letterFound = false;
     	
-    	String cW = this.words[this.currentWord];
-    	int wordLength = cW.length();
+    	int wordLength = this.currentWord.length();
     	
     	boolean allFound = true;
     	
     	for(int i = 0 ; i < wordLength ; i++)
     	{
-    		if(Character.toUpperCase(cW.charAt(i)) == c)
+    		if(Character.toUpperCase(this.currentWord.charAt(i)) == c)
     		{
     			letterFound = true;
     			this.foundLetters[i] = true;
